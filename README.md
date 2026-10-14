@@ -12,7 +12,7 @@ It is still a single Perl script, and the original is left alone apart from thes
 
 - **Sunken decorations.** A treasure chest, a skull or an anchor sits where the castle used to. By default each scene picks one at random (a new one on every redraw), and `-d castle` brings the castle back.
 - **Events take turns.** The shark, fish hook, ship, dolphins, big fish, ducks, sea monster, swan and whale appear one at a time in that fixed order and loop forever, starting from a random one. After each one leaves, the sea stays calm for a shared cooldown (`-e`, 30 seconds by default).
-- **Named fish.** Every 4 seconds a new fish swims in with the name of one of your running Claude Code sessions (in random order) floating above it, read from `~/.claude/sessions`. No sessions, no names.
+- **Named fish.** Every 4 seconds a new fish swims in with the name of one of your running agents (in random order) floating above it. Under Herdr that's every agent pane it tracks, Claude Code and Codex alike, read from `herdr pane list`; without Herdr, the Claude Code sessions in `~/.claude/sessions`. No agents, no names.
 
 ## The sea floor
 

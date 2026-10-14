@@ -83,7 +83,7 @@ my $event_cooldown = defined($opts{'e'}) ? $opts{'e'} : $config{'cooldown'};
 die $usage unless($event_cooldown =~ /^\d+$/);
 my $next_event = 0;
 
-# every $name_interval seconds a new fish swims in named after a claude code session
+# every $name_interval seconds a new fish swims in named after a running agent
 my $name_interval = 4;
 my @session_names;
 
@@ -1613,7 +1613,7 @@ sub name_fish {
 		die_time	=> time() + $name_interval,
 		death_cb	=> \&name_fish,
 	);
-	@session_names = shuffle(session_names()) unless(@session_names);
+	@session_names = shuffle(agent_names()) unless(@session_names);
 	my $name = shift(@session_names);
 	return unless(defined($name));
 	# a new fish carries the name; it doesn't respawn, or the tank would keep growing
@@ -1630,6 +1630,30 @@ sub name_fish {
 	# set after creation: Entity->new dies if given these (method call before bless)
 	$tag->follow_entity($fish);
 	$tag->die_entity($fish);
+}
+
+# names of the running agents: herdr knows every kind (claude, codex, ...);
+# without herdr, fall back to the claude code sessions
+sub agent_names {
+	my @names = herdr_names(scalar(`herdr pane list 2>/dev/null`));
+	return @names ? @names : session_names();
+}
+
+# the agent panes in `herdr pane list` output, by terminal title
+sub herdr_names {
+	my ($json) = @_;
+	my $list = eval { decode_json($json // '') };
+	return () unless(ref($list) eq 'HASH' and ref($list->{'result'}) eq 'HASH'
+		and ref($list->{'result'}{'panes'}) eq 'ARRAY');
+	my @names;
+	foreach my $pane (@{$list->{'result'}{'panes'}}) {
+		next unless(ref($pane) eq 'HASH' and $pane->{'agent'});
+		my $name = $pane->{'terminal_title_stripped'} // '';
+		# codex titles its pane "<thread> | <project>"; the thread is the name
+		$name =~ s/\s+\|\s+[^|]*$// if($pane->{'agent'} eq 'codex');
+		push(@names, $name) if($name =~ /\S/);
+	}
+	return @names;
 }
 
 # names of the running claude code sessions; each one keeps ~/.claude/sessions/<pid>.json
