@@ -48,7 +48,7 @@ use Data::Dumper;
 use Curses;
 use Getopt::Std;
 use JSON::PP;
-use List::Util qw(shuffle);
+use List::Util qw(max);
 use strict;
 use warnings;
 
@@ -83,9 +83,9 @@ my $event_cooldown = defined($opts{'e'}) ? $opts{'e'} : $config{'cooldown'};
 die $usage unless($event_cooldown =~ /^\d+$/);
 my $next_event = 0;
 
-# every $name_interval seconds a new fish swims in named after a running agent
-my $name_interval = 4;
-my @session_names;
+# a new fish named after a running agent swims in every $name_period / <agents> seconds:
+# 16s with one agent, 4s with four
+my $name_period = 16;
 
 my @random_objects = init_random_objects();
 
@@ -1604,23 +1604,30 @@ sub random_object {
 	);
 }
 
-# sends in a new fish named after the next session, then schedules the next tag
+# sends in a new fish named after a random agent that isn't swimming yet, then
+# schedules the next one
 sub name_fish {
 	my (undef, $anim) = @_;
+	# compared as shown: two names that only differ past the cut would look like one
+	my %seen;
+	my @names = grep { !$seen{$_}++ } map { substr($_, 0, 24) } agent_names();
+	# ponytail: Term::Animation checks die_time in whole seconds, so the floor is
+	# one named fish a second; spawn several per tick if that ever needs to go faster
 	$anim->new_entity(
 		shape		=> ' ',
 		position	=> [ 0, 0, $depth{'guiText'} ],
-		die_time	=> time() + $name_interval,
+		die_time	=> time() + max(1, $name_period / (@names || 1)),
 		death_cb	=> \&name_fish,
 	);
-	@session_names = shuffle(agent_names()) unless(@session_names);
-	my $name = shift(@session_names);
-	return unless(defined($name));
+	# each tag is named after its agent, so the names in use are the living tags
+	my @free = grep { !$anim->entity("name_tag:$_") } @names;
+	return unless(@free);
+	my $name = $free[int(rand(@free))];
 	# a new fish carries the name; it doesn't respawn, or the tank would keep growing
 	my $fish = add_fish(undef, $anim);
 	$fish->death_cb(undef);
-	$name = substr($name, 0, 24);
 	my $tag = $anim->new_entity(
+		name		=> "name_tag:$name",
 		type		=> 'name_tag',
 		shape		=> $name,
 		position	=> [ $fish->x, $fish->y - 1, $fish->z ],
