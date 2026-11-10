@@ -9,8 +9,8 @@ local @ARGV = ();
 do './asciiquarium';
 die $@ if($@);
 
-my $file = "$dir/asciiquarium-plus/config";
-mkdir "$dir/asciiquarium-plus";
+my $file = "$dir/asciiquarium-ai/config";
+mkdir "$dir/asciiquarium-ai";
 
 sub config_from {
 	my ($text) = @_;

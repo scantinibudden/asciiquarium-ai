@@ -20,8 +20,8 @@
 #   Joan Stark: http://www.geocities.com/SoHo/7373/
 #     most of the ASCII art
 #
-#   Sebastian Cantini Budden: https://github.com/scantinibudden/asciiquarium-plus
-#     asciiquarium-plus: sunken decorations, event cooldown
+#   Sebastian Cantini Budden: https://github.com/scantinibudden/asciiquarium-ai
+#     asciiquarium-ai: AI agents as named fish, sunken decorations, event cooldown
 #
 # License:
 #
@@ -52,7 +52,7 @@ use List::Util qw(max);
 use strict;
 use warnings;
 
-my $version = "plus-1.3.0";
+my $version = "ai-2.0.0";
 
 my %opts;
 my %decorations = (
@@ -69,7 +69,7 @@ my %defaults = (
 	decoration	=> 'random',
 	cooldown	=> 30,
 );
-my $config_file = ($ENV{'XDG_CONFIG_HOME'} || ($ENV{'HOME'} || '') . '/.config') . '/asciiquarium-plus/config';
+my $config_file = ($ENV{'XDG_CONFIG_HOME'} || ($ENV{'HOME'} || '') . '/.config') . '/asciiquarium-ai/config';
 my %config = read_config($config_file);
 
 my $usage = "usage: $0 [-d random|" . join('|', sort keys %decorations) . "] [-e seconds]\n" .
